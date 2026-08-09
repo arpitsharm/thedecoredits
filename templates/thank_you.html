@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Thank You | The Decor Edits{% endblock %}
+{% block extra_css %}
+<style>
+    .thank-wrapper { max-width: 550px; margin: 60px auto; padding: 0 20px; text-align: center; }
+    .thank-card { background: var(--white); border-radius: 12px; box-shadow: 0 10px 50px rgba(0,0,0,.08); padding: 50px 40px; border: 1px solid var(--border-light); }
+    .thank-icon { width: 84px; height: 84px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; animation: popIn .5s ease; }
+    @keyframes popIn { 0% { transform: scale(0); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .thank-icon i { font-size: 2.2rem; color: #2e7d32; }
+    .thank-card h1 { font-size: 2.2rem; margin-bottom: 12px; color: var(--dark); }
+    .thank-card p { color: var(--text-muted); font-size: 1.4rem; margin-bottom: 8px; }
+    .response-badge { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 12px 24px; border-radius: 50px; font-weight: 600; color: #e65100; margin: 18px 0 28px; font-size: 1.3rem; }
+    .thank-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .thank-actions a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 1.3rem; transition: all .3s; letter-spacing: .3px; }
+    .btn-thank-primary { background: var(--primary); color: var(--white); }
+    .btn-thank-primary:hover { background: var(--primary-dark); color: var(--white); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,111,0,.3); }
+    .btn-thank-outline { background: var(--white); color: var(--text); border: 1px solid var(--border); }
+    .btn-thank-outline:hover { border-color: #1F4D3A; color: #1F4D3A; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="thank-wrapper">
+    <div class="thank-card">
+        <div class="thank-icon"><i class="fas fa-check"></i></div>
+        <h1>Thank You!</h1>
+        <p>Your quote request has been submitted successfully.</p>
+        <div class="response-badge"><i class="fas fa-clock"></i> We'll respond within 48 hours</div>
+        <p style="font-size:1.3rem">Our team will review your request and get back to you soon.</p>
+        <div class="thank-actions">
+            <a href="{% url 'home' %}" class="btn-thank-primary"><i class="fas fa-home"></i> Back to Home</a>
+            <a href="{% url 'products' %}" class="btn-thank-outline"><i class="fas fa-th-large"></i> Browse Products</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

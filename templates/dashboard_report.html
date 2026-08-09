@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}Quote Reports - Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .dash-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 30px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        text-align: center;
+        border: 1px solid #f0f0f0;
+        transition: transform .2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-card .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+        font-size: 1.5rem;
+    }
+    .stat-card h3 { font-size: 2rem; font-weight: 700; margin: 6px 0; }
+    .stat-card p { color: #666; font-size: 1rem; margin: 0; }
+
+    .table-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        border: 1px solid #f0f0f0;
+    }
+    .table-card img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+    .table-card th { font-size: 1rem; font-weight: 600; padding: 16px; }
+    .table-card td { font-size: 0.95rem; padding: 16px; vertical-align: middle; }
+
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        background: #f44336;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 6px;
+    }
+
+    .filter-bar {
+        background: white;
+        border-radius: 10px;
+        padding: 18px 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        border: 1px solid #f0f0f0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .filter-bar select {
+        border-radius: 8px;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .empty-state i { font-size: 3.5rem; color: #ddd; margin-bottom: 16px; }
+    .empty-state h4 { color: #999; font-weight: 500; font-size: 1.2rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dash-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 style="font-size:1.6rem;margin:0"><i class="fas fa-file-alt me-2"></i>Quote Reports</h2>
+                <p class="mb-0" style="font-size:1rem;opacity:0.8">View and manage customer quote requests</p>
+            </div>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-light me-2"><i class="fas fa-arrow-left me-1"></i>Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#e3f2fd;color:#1976d2"><i class="fas fa-file-alt"></i></div>
+                <h3>{{ total_quotes }}</h3>
+                <p>Total Quotes</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#fce4ec;color:#c62828"><i class="fas fa-envelope"></i></div>
+                <h3>{{ unread_quotes }}</h3>
+                <p>Unread Quotes</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#e8f5e9;color:#2e7d32"><i class="fas fa-check-circle"></i></div>
+                <h3>{{ total_quotes|add:"-"|add:unread_quotes }}</h3>
+                <p>Read Quotes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <form method="GET" class="d-flex align-items-center gap-3" style="width:100%">
+            <label class="fw-bold mb-0" style="white-space:nowrap;font-size:1rem"><i class="fas fa-filter me-1"></i>Filter:</label>
+            <select name="product" class="form-select" style="max-width:320px" onchange="this.form.submit()">
+                <option value="">All Products</option>
+                {% for p in products %}
+                <option value="{{ p.id }}" {% if product_filter == p.id|stringformat:"d" %}selected{% endif %}>{{ p.sku }} - {{ p.description|truncatewords:5 }}</option>
+                {% endfor %}
+            </select>
+            {% if product_filter %}
+            <a href="{% url 'dashboard_report' %}" class="btn btn-outline-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if unread_quotes > 0 %}
+    <form method="POST" class="mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mark_all_read">
+        <button type="submit" class="btn btn-outline-primary"><i class="fas fa-check-double me-1"></i>Mark All as Read</button>
+    </form>
+    {% endif %}
+
+    <div class="table-card">
+        <div class="p-4 border-bottom">
+            <h5 class="mb-0" style="font-size:1.1rem;font-weight:600"><i class="fas fa-list me-2"></i>All Quote Requests</h5>
+        </div>
+        {% if quote_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Qty</th>
+                        <th>Product</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quote in quote_requests %}
+                    <tr {% if not quote.is_read %}style="background:#fff8e1"{% endif %}>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ quote.full_name }}</strong>{% if not quote.is_read %}<span class="unread-dot"></span>{% endif %}</td>
+                        <td><i class="fas fa-phone text-success me-1"></i>{{ quote.phone_number }}</td>
+                        <td><strong>{{ quote.quantity }}</strong> pcs</td>
+                        <td><a href="{% url 'product_detail' quote.product.id %}" style="color:var(--primary);font-weight:600">{{ quote.product.sku }}</a></td>
+                        <td>{{ quote.created_at|date:"M d, Y H:i" }}</td>
+                        <td>{% if quote.is_read %}<span class="badge bg-success">Read</span>{% else %}<span class="badge bg-warning text-dark">New</span>{% endif %}</td>
+                        <td>
+                            {% if not quote.is_read %}
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="mark_read">
+                                <input type="hidden" name="quote_id" value="{{ quote.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Mark Read"><i class="fas fa-check"></i></button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" class="d-inline" onsubmit="return confirm('Delete?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_quote">
+                                <input type="hidden" name="quote_id" value="{{ quote.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h4>No quote requests yet</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

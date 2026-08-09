@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KVM 1 - VPS Security Checklist</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif;}
+body{background:#0b1220;color:white;padding:30px;}
+.container{max-width:1200px;margin:auto;}
+header{text-align:center;margin-bottom:40px;}
+header h1{font-size:42px;background:linear-gradient(90deg,#38bdf8,#a78bfa);-webkit-background-clip:text;color:transparent;}
+header p{color:#94a3b8;margin-top:10px;}
+.card{background:#111827;border:1px solid #263244;border-radius:18px;padding:25px;margin-bottom:25px;transition:.3s;}
+.card:hover{transform:translateY(-5px);border-color:#38bdf8;}
+h2{color:#38bdf8;margin-bottom:15px;}
+h3{color:#facc15;margin-top:15px;}
+ul{padding-left:25px;line-height:1.8;}
+li{color:#d1d5db;}
+.imp{background:#1f2937;border-left:5px solid #ef4444;}
+.safe{background:#10251b;border-left:5px solid #22c55e;}
+.warn{background:#1c1a0f;border-left:5px solid #facc15;}
+.code{background:#020617;padding:15px;border-radius:10px;margin-top:10px;color:#4ade80;font-family:monospace;white-space:pre-wrap;word-break:break-all;}
+.badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:14px;margin-bottom:10px;}
+.badge-red{background:#ef4444;}
+.badge-green{background:#22c55e;}
+.badge-yellow{background:#facc15;color:#000;}
+.badge-blue{background:#38bdf8;}
+.check{display:flex;align-items:center;gap:10px;margin:12px 0;}
+input[type="checkbox"]{width:18px;height:18px;cursor:pointer;}
+footer{text-align:center;margin-top:40px;color:#64748b;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #263244;color:#d1d5db;}
+th{color:#38bdf8;}
+.cmd{background:#020617;padding:12px;border-radius:8px;margin:8px 0;color:#a78bfa;font-family:monospace;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1>&#128274; KVM 1 - VPS Security Checklist</h1>
+<p>Hostinger KVM 1 - CPU Usage &amp; Abuse Prevention Guide</p>
+</header>
+
+<!-- ===== KVM 1 SPECS ===== -->
+<div class="card safe">
+<span class="badge badge-blue">KVM 1 SPECS</span>
+<h2>&#9881; Your Server Resources</h2>
+<table>
+<tr><th>Resource</th><th>KVM 1 Limit</th><th>Safe Usage</th></tr>
+<tr><td>vCPU</td><td>1 Core</td><td>Keep below 80% average</td></tr>
+<tr><td>RAM</td><td>1 GB</td><td>Keep below 80% (800MB)</td></tr>
+<tr><td>Storage</td><td>50 GB SSD</td><td>Keep 10GB free minimum</td></tr>
+<tr><td>Bandwidth</td><td>1 TB / month</td><td>Monitor traffic spikes</td></tr>
+<tr><td>IP</td><td>1 IPv4</td><td>Protect it - no abuse</td></tr>
+</table>
+</div>
+
+<!-- ===== PRE-DEPLOY CHECKLIST ===== -->
+<div class="card safe">
+<span class="badge badge-green">BEFORE GOING LIVE</span>
+<h2>&#9989; Pre-Deployment Checks</h2>
+
+<div class="check">
+<input type="checkbox">
+<span><b>DEBUG = False</b> in settings.py</span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span><b>ALLOWED_HOSTS</b> configured (thedecoredits.com + IP)</span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span><b>HTTPS working</b> - SSL certificate installed</span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span>Run: <code>python manage.py check --deploy</code></span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span><b>SECRET_KEY</b> loaded from environment variable, not hardcoded</span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span><b>Gunicorn workers = 3</b> max for KVM 1 (1 core CPU)</span>
+</div>
+<div class="check">
+<input type="checkbox">
+<span><b>DEBUG = False</b> before publishing publicly</span>
+</div>
+</div>
+
+<!-- ===== CPU ABUSE PREVENTION ===== -->
+<div class="card warn">
+<span class="badge badge-yellow">CPU USAGE</span>
+<h2>&#128187; CPU Abuse Prevention (KVM 1 - 1 Core)</h2>
+
+<h3>Why KVM 1 CPU Gets Abused</h3>
+<ul>
+<li><b>Too many Gunicorn workers</b> - each worker eats CPU+RAM</li>
+<li><b>Infinite loops</b> in Python code</li>
+<li><b>Crypto miners</b> (malware)</li>
+<li><b>Bot traffic</b> hitting your site non-stop</li>
+<li><b>Chatbot API calls</b> without rate limiting</li>
+<li><b>Django debug toolbar</b> left on in production</li>
+</ul>
+
+<h3>Safe Gunicorn Config for KVM 1</h3>
+<div class="code"># For KVM 1 (1 vCPU, 1GB RAM) - MAX 3 workers
+gunicorn thedecoredits.wsgi:application \
+  --workers 3 \
+  --threads 2 \
+  --bind 127.0.0.1:8000 \
+  --timeout 120 \
+  --max-requests 1000 \
+  --max-requests-jitter 50
+
+# Workers formula: (2 x CPU cores) + 1
+# KVM 1 = 1 core = (2*1)+1 = 3 workers MAX</div>
+
+<h3>Monitor CPU Usage</h3>
+<div class="code"># Check CPU usage
+top -bn1 | head -5
+
+# Check which process uses most CPU
+ps aux --sort=-%cpu | head -10
+
+# Check Gunicorn workers
+ps aux | grep gunicorn
+
+# Continuous monitoring
+htop</div>
+
+<h3>CPU Alert Thresholds</h3>
+<table>
+<tr><th>Usage</th><th>Status</th><th>Action</th></tr>
+<tr><td>0-60%</td><td style="color:#22c55e;">Normal</td><td>No action needed</td></tr>
+<tr><td>60-80%</td><td style="color:#facc15;">Warning</td><td>Check processes, reduce workers</td></tr>
+<tr><td>80-95%</td><td style="color:#ef4444;">Critical</td><td>Kill suspicious processes, check for miners</td></tr>
+<tr><td>95-100%</td><td style="color:#ef4444;">Danger</td><td>VPS may be suspended by Hostinger</td></tr>
+</table>
+</div>
+
+<!-- ===== COMMON ABUSE REASONS ===== -->
+<div class="card imp">
+<span class="badge badge-red">ABUSE PREVENTION</span>
+<h2>&#128308; 1. Compromised VPS / Hacked Server</h2>
+<ul>
+<li>SSH password leak</li>
+<li>Weak admin password</li>
+<li>Root access stolen</li>
+<li>Hacked website access</li>
+</ul>
+<p>Attackers may run:</p>
+<ul>
+<li>Crypto mining</li>
+<li>Spam sending</li>
+<li>Bot networks</li>
+<li>Malicious scripts</li>
+</ul>
+<div class="cmd"># Check for suspicious processes
+ps auxf | grep -v root | head -30
+
+# Check for miners
+ps aux | grep -E "mine|xmrig|kdevtmpfsi|kinsing"
+
+# Check crontab for malware
+crontab -l
+cat /etc/crontab</div>
+
+<h2>&#128308; 2. Malware / Virus</h2>
+<ul>
+<li>Miner software (xmrig, kinsing)</li>
+<li>Backdoors</li>
+<li>Web shells</li>
+<li>Suspicious Python/PHP scripts</li>
+</ul>
+<div class="cmd"># Scan for suspicious files
+find /tmp -type f -executable -ls
+find /var/tmp -type f -executable -ls
+find / -name "xmrig" -o -name "kinsing" 2>/dev/null
+
+# Check for suspicious network connections
+netstat -tlnp
+ss -tlnp</div>
+
+<h2>&#128308; 3. High CPU Abuse</h2>
+<ul>
+<li>Too many Gunicorn workers (KVM 1: max 3)</li>
+<li>Infinite loops in code</li>
+<li>Background tasks running forever</li>
+<li>Bot traffic / DDoS</li>
+<li>Mining malware</li>
+</ul>
+<div class="cmd"># Kill all gunicorn and restart clean
+pkill -f gunicorn
+sleep 2
+gunicorn thedecoredits.wsgi:application --workers 3 --bind 127.0.0.1:8000
+
+# Check for high CPU processes
+ps aux --sort=-%cpu | head -10</div>
+
+<h2>&#128308; 4. Spam Email Activity</h2>
+<ul>
+<li>Fake emails from your server</li>
+<li>Bulk emails / mailer scripts</li>
+<li>Phishing emails</li>
+</ul>
+<div class="cmd># Check if mail is being sent
+postqueue -p
+mailq
+
+# Disable postfix if not needed
+systemctl stop postfix
+systemctl disable postfix</div>
+
+<h2>&#128308; 5. Phishing Website</h2>
+<ul>
+<li>Fake login pages hosted on your VPS</li>
+<li>Banking clones</li>
+<li>Social media clones</li>
+</ul>
+
+<h2>&#128308; 6. Vulnerable Web Application</h2>
+<ul>
+<li>File upload vulnerabilities</li>
+<li>Unsafe input handling</li>
+<li>SQL Injection</li>
+<li>Weak authentication</li>
+</ul>
+
+<h2>&#128308; 7. Exposed Admin Panel</h2>
+<ul>
+<li>Public /admin/ page accessible to everyone</li>
+<li>Weak admin passwords</li>
+<li>No brute-force protection</li>
+</ul>
+<div class="cmd"># Check admin access logs
+grep "admin" /var/log/nginx/access.log | tail -20
+
+# Check for brute force attempts
+grep "Failed password" /var/log/auth.log | tail -20</div>
+
+<h2>&#128308; 8. Open Ports / Services</h2>
+<ul>
+<li>Public database access (SQLite/PostgreSQL)</li>
+<li>Redis exposed to public</li>
+<li>Docker API exposed</li>
+<li>SSH without protection</li>
+</ul>
+<div class="cmd"># Check open ports
+netstat -tlnp
+ss -tlnp
+
+# Check firewall status
+ufw status verbose
+iptables -L -n</div>
+
+<h2>&#128308; 9. Stolen API Keys</h2>
+<ul>
+<li>Payment keys (PayTM)</li>
+<li>SMTP passwords</li>
+<li>Database passwords</li>
+<li>OpenRouter API key (currently hardcoded!)</li>
+</ul>
+
+<h2>&#128308; 10. Outdated Software</h2>
+<ul>
+<li>Old Django versions</li>
+<li>Old Python packages</li>
+<li>Old Ubuntu packages</li>
+<li>Security vulnerabilities</li>
+</ul>
+<div class="cmd># Update system
+sudo apt update && sudo apt upgrade -y
+
+# Update Python packages
+pip install --upgrade pip
+pip list --outdated
+pip install --upgrade django</div>
+
+<h2>&#128308; 11. Third Party Abuse Report</h2>
+<ul>
+<li>IP attack complaint from Hostinger</li>
+<li>Malicious content report</li>
+<li>Copyright complaint</li>
+</ul>
+
+<h2>&#128308; 12. Unsafe User Uploads</h2>
+<ul>
+<li>Images without validation</li>
+<li>Documents with macros</li>
+<li>Files without size limits</li>
+</ul>
+</div>
+
+<!-- ===== FIREWALL SETUP ===== -->
+<div class="card warn">
+<span class="badge badge-yellow">FIREWALL</span>
+<h2>&#128737; Firewall Setup for KVM 1</h2>
+<div class="code"># Install UFW firewall
+sudo apt install ufw -y
+
+# Default policies
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow SSH (change port if you changed SSH port)
+sudo ufw allow 22/tcp
+
+# Allow HTTP and HTTPS
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Enable firewall
+sudo ufw enable
+sudo ufw status verbose
+
+# Block specific IP if needed
+sudo ufw deny from 1.2.3.4</div>
+</div>
+
+<!-- ===== MONITORING ===== -->
+<div class="card">
+<span class="badge badge-blue">MONITORING</span>
+<h2>&#128200; CPU &amp; Resource Monitoring</h2>
+
+<h3>Quick Commands</h3>
+<div class="code"># Real-time system overview
+htop
+
+# CPU usage per core
+mpstat -P ALL 1 5
+
+# Memory usage
+free -h
+
+# Disk usage
+df -h
+
+# Network connections
+ss -tunapl</div>
+
+<h3>Setup CPU Alert Script</h3>
+<div class="code"># Create alert script
+sudo nano /usr/local/bin/cpu_alert.sh
+
+# Content:
+#!/bin/bash
+THRESHOLD=80
+CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}')
+if (( $(echo "$CPU > $THRESHOLD" | bc -l) )); then
+    echo "ALERT: CPU usage is ${CPU}% on $(hostname)" | \
+    mail -s "CPU Alert - KVM 1" your@email.com
+fi
+
+# Make executable
+sudo chmod +x /usr/local/bin/cpu_alert.sh
+
+# Add to crontab (check every 5 minutes)
+crontab -e
+# Add: */5 * * * * /usr/local/bin/cpu_alert.sh</div>
+</div>
+
+<!-- ===== DJANGO SETTINGS ===== -->
+<div class="card safe">
+<span class="badge badge-green">DJANGO SETTINGS</span>
+<h2>&#128736; Production Settings Applied</h2>
+<div class="code"># settings.py - Production Config for KVM 1
+
+DEBUG = False
+ALLOWED_HOSTS = ['thedecoredits.com', 'www.thedecoredits.com', '72.62.129.226']
+
+# HTTPS / HSTS
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Security Headers
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+# Session
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Gunicorn (KVM 1: 1 core, 1GB RAM)
+# Run: gunicorn thedecoredits.wsgi:application --workers 3 --bind 127.0.0.1:8000</div>
+</div>
+
+<!-- ===== FINAL RULES ===== -->
+<div class="card safe">
+<span class="badge badge-green">FINAL RULES</span>
+<h2>&#128737; KVM 1 Safety Rules</h2>
+<ul>
+<li><b>Keep Django DEBUG OFF</b> always in production</li>
+<li><b>Gunicorn workers = 3 MAX</b> for KVM 1 (1 core)</li>
+<li><b>Use strong passwords</b> for SSH and admin</li>
+<li><b>Enable UFW firewall</b> - only allow 22, 80, 443</li>
+<li><b>Use SSH keys</b> instead of passwords</li>
+<li><b>Update packages regularly</b></li>
+<li><b>Monitor CPU</b> - keep below 80% average</li>
+<li><b>Check processes daily</b> for miners/malware</li>
+<li><b>Backup your VPS</b> regularly</li>
+<li><b>Never expose database ports</b> publicly</li>
+<li><b>Rate limit chatbot API</b> to prevent abuse</li>
+<li><b>Move API keys to environment variables</b></li>
+</ul>
+</div>
+
+<footer>
+KVM 1 Security Checklist - thedecoredits.com - Hostinger VPS
+</footer>
+
+</div>
+
+<script>
+document.querySelectorAll("input[type=checkbox]").forEach(box=>{
+    box.addEventListener("change",()=>{
+        box.parentElement.style.opacity = box.checked ? "0.6" : "1";
+    });
+});
+</script>
+</body>
+</html>

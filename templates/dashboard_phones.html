@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Manage Phone Numbers - Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 44px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.04);
+        border: 1px solid var(--border-light);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .form-card label { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .form-card input[type="text"] {
+        border-radius: 8px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        font-size: 1rem;
+        transition: all .3s;
+    }
+    .form-card input:focus {
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 3px rgba(212,175,55,.1);
+    }
+    .phone-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        transition: all .2s;
+    }
+    .phone-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+    .phone-card.default { border-color: #D4AF37; background: #fefdf8; }
+    .phone-info h6 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+    .phone-info p { margin: 2px 0 0; color: var(--text-muted); font-size: 1rem; }
+    .phone-actions { display: flex; gap: 8px; align-items: center; }
+    .phone-actions .btn { font-size: .85rem; padding: 5px 10px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="form-card">
+        <h4 style="font-size:1.4rem;font-weight:700;margin-bottom:24px">
+            <i class="fas fa-phone me-2" style="color:var(--primary)"></i>Manage Phone Numbers
+        </h4>
+
+        {% if phones %}
+        <div class="mb-4">
+            {% for phone in phones %}
+            <div class="phone-card {% if phone.is_default %}default{% endif %}">
+                <div class="phone-info">
+                    <h6>
+                        {% if phone.is_default %}
+                        <i class="fas fa-star me-1" style="color:#D4AF37"></i>
+                        {% endif %}
+                        {{ phone.label }}
+                    </h6>
+                    <p>{{ phone.number }}</p>
+                </div>
+                <div class="phone-actions">
+                    {% if not phone.is_default %}
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_default">
+                        <input type="hidden" name="phone_id" value="{{ phone.id }}">
+                        <button type="submit" class="btn btn-outline-warning btn-sm" title="Set as Default">
+                            <i class="fas fa-star"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button class="btn btn-outline-primary btn-sm" onclick="editPhone({{ phone.id }}, '{{ phone.label }}', '{{ phone.number }}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this phone?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="phone_id" value="{{ phone.id }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 mb-4" style="background:#f8f6f3;border-radius:10px">
+            <i class="fas fa-phone-slash fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No phone numbers yet. Add one below.</p>
+        </div>
+        {% endif %}
+
+        <hr style="margin:20px 0">
+
+        <h5 id="formTitle" style="font-size:1.2rem;font-weight:600;margin-bottom:16px">
+            <i class="fas fa-plus me-1" style="color:#28a745"></i> Add New Phone
+        </h5>
+        <form method="POST" id="phoneForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add" id="formAction">
+            <input type="hidden" name="phone_id" value="" id="formPhoneId">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label>Label *</label>
+                    <input type="text" name="label" id="formLabel" class="form-control" required placeholder="e.g. Sales, Owner">
+                </div>
+                <div class="col-md-5">
+                    <label>Number *</label>
+                    <input type="text" name="number" id="formNumber" class="form-control" required placeholder="e.g. 9876543210">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100" id="formSubmitBtn">
+                        <i class="fas fa-plus me-1"></i>Add
+                    </button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="cancelEdit" style="display:none" onclick="cancelEdit()">
+                Cancel Edit
+            </button>
+        </form>
+
+        <div class="mt-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function editPhone(id, label, number) {
+    document.getElementById('formAction').value = 'edit';
+    document.getElementById('formPhoneId').value = id;
+    document.getElementById('formLabel').value = label;
+    document.getElementById('formNumber').value = number;
+    document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit me-1" style="color:var(--primary)"></i> Edit Phone';
+    document.getElementById('formSubmitBtn').innerHTML = '<i class="fas fa-save me-1"></i>Save';
+    document.getElementById('cancelEdit').style.display = 'inline-block';
+    document.getElementById('formLabel').focus();
+}
+function cancelEdit() {
+    document.getElementById('formAction').value = 'add';
+    document.getElementById('formPhoneId').value = '';
+    document.getElementById('formLabel').value = '';
+    document.getElementById('formNumber').value = '';
+    document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus me-1" style="color:#28a745"></i> Add New Phone';
+    document.getElementById('formSubmitBtn').innerHTML = '<i class="fas fa-plus me-1"></i>Add';
+    document.getElementById('cancelEdit').style.display = 'none';
+}
+</script>
+{% endblock %}

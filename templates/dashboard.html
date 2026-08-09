@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - The Decor Edits{% endblock %}
+{% block extra_css %}
+<style>
+    .dash-header {
+        background: linear-gradient(135deg, var(--dark) 0%, #1a3c34 100%);
+        color: white;
+        padding: 50px 0;
+        margin-bottom: 40px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px 22px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.04);
+        text-align: center;
+        border: 1px solid var(--border-light);
+        transition: all .3s;
+    }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    .stat-card .icon-box {
+        width: 62px;
+        height: 62px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 1.5rem;
+    }
+    .stat-card h3 { font-size: 2.2rem; font-weight: 700; margin: 8px 0; }
+    .stat-card p { color: var(--text-muted); font-size: 1rem; margin: 0; }
+
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.04);
+        border: 1px solid var(--border-light);
+        margin-bottom: 30px;
+    }
+    .chart-card h5 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-bottom: 22px;
+        color: var(--dark);
+    }
+    .chart-card canvas { max-height: 300px; }
+
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,.04);
+        border: 1px solid var(--border-light);
+    }
+    .table-card img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+    .table-card th { font-size: 1rem; font-weight: 600; padding: 16px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; font-size: .85rem; }
+    .table-card td { font-size: .95rem; padding: 16px; vertical-align: middle; }
+    .badge-moq { font-size: .78rem; margin: 2px; display: inline-block; }
+    .views-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: .85rem;
+        font-weight: 600;
+    }
+    .table-card .btn { font-size: .85rem; padding: 6px 12px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dash-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 style="font-size:1.8rem;margin:0"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+                <p class="mb-0" style="font-size:1rem;opacity:0.8">Manage products & track views</p>
+            </div>
+            <div>
+                <a href="{% url 'dashboard_report' %}" class="btn btn-warning me-2">
+                    <i class="fas fa-file-alt me-1"></i>Reports
+                </a>
+                <a href="{% url 'dashboard_reviews' %}" class="btn btn-info me-2" style="color:#fff">
+                    <i class="fas fa-star me-1"></i>Reviews
+                </a>
+                <a href="{% url 'dashboard_categories' %}" class="btn btn-secondary me-2">
+                    <i class="fas fa-folder me-1"></i>Categories
+                </a>
+                <a href="{% url 'dashboard_phones' %}" class="btn btn-info me-2" style="color:#fff">
+                    <i class="fas fa-phone me-1"></i>Phones
+                </a>
+                <a href="{% url 'dashboard_add_product' %}" class="btn btn-success me-2">
+                    <i class="fas fa-plus me-1"></i>Add Product
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#e3f2fd;color:#1976d2"><i class="fas fa-box"></i></div>
+                <h3>{{ products|length }}</h3>
+                <p>Total Products</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#e8f5e9;color:#2e7d32"><i class="fas fa-eye"></i></div>
+                <h3>{{ total_views }}</h3>
+                <p>Total Views</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#fff3e0;color:#e65100"><i class="fas fa-fire"></i></div>
+                <h3>{% if products %}{{ products.0.views_count }}{% else %}0{% endif %}</h3>
+                <p>Top Product Views</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="icon-box" style="background:#fce4ec;color:#c62828"><i class="fas fa-clock"></i></div>
+                <h3>{% if products %}{{ products.0.created_at|date:"M d" }}{% else %}--{% endif %}</h3>
+                <p>Last Added</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h5><i class="fas fa-chart-bar me-2" style="color:var(--primary)"></i>Product Views Overview</h5>
+        <canvas id="viewsChart"></canvas>
+    </div>
+
+    <div class="table-card">
+        <div class="p-4 border-bottom">
+            <h5 class="mb-0" style="font-size:1.1rem;font-weight:600"><i class="fas fa-list me-2"></i>All Products</h5>
+        </div>
+        {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Image</th>
+                        <th>SKU</th>
+                        <th>Description</th>
+                        <th>Views</th>
+                        <th>Pricing</th>
+                        <th>Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><img src="{{ product.image.url }}" alt="{{ product.sku }}"></td>
+                        <td><strong>{{ product.sku }}</strong></td>
+                        <td>{{ product.description|truncatewords:12 }}</td>
+                        <td><span class="views-badge"><i class="fas fa-eye"></i> {{ product.views_count }}</span></td>
+                        <td>
+                            {% for p in product.pricings.all %}
+                            <span class="badge bg-success badge-moq">MOQ {{ p.moq }} = Rs.{{ p.price }}</span>
+                            {% empty %}
+                            <span class="badge bg-secondary">No pricing</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ product.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'dashboard_manage' product.id %}" class="btn btn-sm btn-outline-success" title="Manage"><i class="fas fa-cog me-1"></i>Manage</a>
+                            <a href="{% url 'dashboard_edit_product' product.id %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit me-1"></i>Edit</a>
+                            <form method="POST" action="{% url 'dashboard_delete_product' product.id %}" class="d-inline" onsubmit="return confirm('Delete {{ product.sku }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+            <p class="text-muted mb-3" style="font-size:1.1rem">No products yet.</p>
+            <a href="{% url 'dashboard_add_product' %}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Product</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+fetch("{% url 'dashboard_views_data' %}")
+    .then(r => r.json())
+    .then(data => {
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Views',
+                    data: data.views,
+                    backgroundColor: 'rgba(255, 111, 0, 0.7)',
+                    borderColor: '#ff6f00',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 13 } }, grid: { color: '#f0f0f0' } },
+                    x: { ticks: { font: { size: 12 } }, grid: { display: false } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

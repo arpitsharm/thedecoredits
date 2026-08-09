@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% block title %}The Decor Edits - Premium Resin Home Decor{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ── HERO BANNER ── */
+    .hero-banner {
+        background: url('/static/images/banner.png') center/cover no-repeat;
+        padding: 50px 0 0;
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+    }
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(240,235,225,.92) 0%, rgba(240,235,225,.7) 40%, rgba(240,235,225,.1) 70%, transparent 100%);
+        z-index: 1;
+    }
+    .hero-inner { position: relative; z-index: 2; }
+
+    /* Logo inside banner */
+    .hero-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+    .hero-logo-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        border: 2px solid var(--primary-green);
+        background: rgba(255,255,255,.8);
+    }
+    .hero-logo-text h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin: 0;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .hero-logo-text span {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    /* Heading */
+    .hero-content h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 4.2rem;
+        font-weight: 800;
+        color: var(--primary-green);
+        margin-bottom: 0;
+        line-height: 1.1;
+        letter-spacing: -1px;
+    }
+
+    /* Decorative divider */
+    .hero-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 14px 0 10px;
+    }
+    .hero-divider-line {
+        height: 1px;
+        width: 60px;
+        background: var(--gold);
+    }
+    .hero-divider-diamond {
+        color: var(--gold);
+        font-size: 1.4rem;
+    }
+
+    /* Subtitle */
+    .hero-content .subtitle {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.8rem;
+        color: var(--gold);
+        font-weight: 600;
+        margin-bottom: 14px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .hero-content p {
+        font-size: 1.4rem;
+        color: var(--text-sec);
+        max-width: 520px;
+        margin-bottom: 24px;
+        line-height: 1.7;
+    }
+    .hero-content p strong { color: var(--dark); font-weight: 600; }
+
+    /* Hero buttons */
+    .hero-btn-group { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .3s;
+        text-decoration: none;
+        border: 2px solid transparent;
+    }
+    .hero-btn-primary {
+        background: var(--gold);
+        color: var(--white);
+        border-color: var(--gold);
+    }
+    .hero-btn-primary:hover {
+        background: var(--gold-light);
+        color: var(--white);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(201,162,39,.3);
+    }
+    .hero-btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
+    }
+    .hero-btn-secondary:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+        transform: translateY(-2px);
+    }
+
+    /* Carousel arrows */
+    .hero-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.85);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all .3s;
+        font-size: 1.6rem;
+        color: var(--text);
+    }
+    .hero-arrow:hover { background: var(--white); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .hero-arrow-left { left: 16px; }
+    .hero-arrow-right { right: 16px; }
+
+    /* Wholesale badge */
+    .wholesale-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--primary-green);
+        border: 2px solid var(--gold);
+        border-radius: 10px;
+        padding: 16px 20px;
+        text-align: center;
+        z-index: 5;
+    }
+    .wholesale-badge i { color: var(--gold); font-size: 2rem; display: block; margin-bottom: 6px; }
+    .wholesale-badge .badge-title { color: var(--white); font-size: 1.1rem; font-weight: 700; display: block; letter-spacing: 1px; text-transform: uppercase; }
+    .wholesale-badge .badge-sub { color: var(--gold); font-size: 1rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── FEATURES BAR ── */
+    .features-bar {
+        background: var(--primary-green);
+        padding: 16px 0;
+        border-bottom: 3px solid var(--gold);
+        position: relative;
+        z-index: 2;
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+    }
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--white);
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: background .3s;
+    }
+    .feature-item:hover { background: rgba(255,255,255,.1); }
+    .feature-item i { color: var(--gold); font-size: 1.4rem; flex-shrink: 0; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+        background: var(--primary-green);
+        padding: 20px 0;
+        position: relative;
+        z-index: 2;
+    }
+    .cta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        align-items: center;
+    }
+    .cta-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.3rem;
+        transition: all .3s;
+    }
+    .cta-btn i { font-size: 1.6rem; }
+    .cta-catalogue { background: var(--primary-green); color: var(--white); border: 1px solid rgba(255,255,255,.2); }
+    .cta-catalogue:hover { background: var(--primary-green-light); color: var(--white); transform: translateY(-2px); }
+    .cta-dealer { background: var(--gold); color: var(--white); }
+    .cta-dealer:hover { background: var(--gold-light); color: var(--white); transform: translateY(-2px); }
+    .cta-contact { background: #25d366; color: var(--white); }
+    .cta-contact:hover { background: #20bd5a; color: var(--white); transform: translateY(-2px); }
+    .cta-gst {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--white);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,.2);
+    }
+    .cta-gst i { color: var(--primary-green); font-size: 2rem; }
+    .cta-gst-text h4 { font-size: 1.1rem; font-weight: 600; color: var(--primary-green); margin: 0; }
+    .cta-gst-text p { font-size: 1rem; color: var(--text-muted); margin: 0; }
+
+    /* ── PRODUCT SECTION ── */
+    .product-inner-section-div { margin-bottom: 30px; }
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state i { font-size: 4rem; color: #ddd; margin-bottom: 16px; }
+    .empty-state h3 { color: var(--text-muted); font-weight: 500; }
+
+    @media (max-width: 992px) {
+        .features-grid { grid-template-columns: repeat(3, 1fr); }
+        .cta-grid { grid-template-columns: repeat(2, 1fr); }
+        .wholesale-badge { display: none; }
+        .hero-content h1 { font-size: 3rem; }
+    }
+    @media (max-width: 576px) {
+        .hero-content h1 { font-size: 2.2rem; }
+        .hero-content .subtitle { font-size: 1.4rem; }
+        .features-grid { grid-template-columns: repeat(2, 1fr); }
+        .cta-grid { grid-template-columns: 1fr; }
+        .hero-logo-text h2 { font-size: 1.5rem; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero-banner">
+    <!-- Carousel arrows -->
+    {% comment %} <button class="hero-arrow hero-arrow-left"><i class="fas fa-chevron-left"></i></button> {% endcomment %}
+    {% comment %} <button class="hero-arrow hero-arrow-right"><i class="fas fa-chevron-right"></i></button> {% endcomment %}
+
+    <!-- Wholesale badge -->
+    <div class="wholesale-badge">
+        <i class="fas fa-box"></i>
+        <span class="badge-title">WHOLESALE ONLY</span>
+        <span class="badge-sub">BULK ORDERS WELCOME</span>
+    </div>
+
+    <div class="container hero-inner">
+        <div class="row align-items-center">
+            <div class="col-lg-7 hero-content">
+                <!-- Logo -->
+                <div class="hero-logo">
+                    <div class="hero-logo-icon">D</div>
+                    <div class="hero-logo-text">
+                        <h2>The Decor Edits</h2>
+                        <span>Wholesale Only</span>
+                    </div>
+                </div>
+
+                <h1>PREMIUM RESIN<br>HOME DÉCOR</h1>
+
+                <!-- Divider -->
+                <div class="hero-divider">
+                    <div class="hero-divider-line"></div>
+                    <span class="hero-divider-diamond">&#10022;</span>
+                    <div class="hero-divider-line"></div>
+                </div>
+
+                <div class="subtitle">MANUFACTURER & WHOLESALER</div>
+                <p>Supplying unique, handcrafted resin home décor products to <strong>retailers, distributors, online sellers & interior designers</strong> across India.</p>
+                <div class="hero-btn-group">
+                    <a href="{% url 'products' %}" class="hero-btn hero-btn-primary">
+                        <i class="fas fa-th-large"></i> View Catalogue
+                    </a>
+                    <a href="#" class="hero-btn hero-btn-secondary">
+                        <i class="fab fa-whatsapp"></i> Contact Sales
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES BAR -->
+<div class="features-bar">cc
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <i class="fas fa-award"></i>
+                <span>PREMIUM QUALITY</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-box"></i>
+                <span>SECURE PACKAGING</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-truck"></i>
+                <span>PAN INDIA DELIVERY</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-headset"></i>
+                <span>DEDICATED B2B SUPPORT</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-tags"></i>
+                <span>COMPETITIVE WHOLESALE PRICES</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-sync-alt"></i>
+                <span>NEW DESIGNS ADDED REGULARLY</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA SECTION -->
+<div class="cta-section">
+    <div class="container">
+        <div class="cta-grid">
+            <a href="{% url 'products' %}" class="cta-btn cta-catalogue">
+                <i class="fas fa-book-open"></i>
+                <div>
+                    <strong>VIEW CATALOGUE</strong><br>
+                    <small style="font-weight:400;opacity:.8">Explore Our Collection</small>
+                </div>
+            </a>
+            <a href="#" class="cta-btn cta-dealer">
+                <i class="fas fa-user-tie"></i>
+                <div>
+                    <strong>BECOME A DEALER</strong><br>
+                    <small style="font-weight:400;opacity:.8">Join Our B2B Network</small>
+                </div>
+            </a>
+            <a href="#" class="cta-btn cta-contact">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <strong>CONTACT SALES</strong><br>
+                    <small style="font-weight:400;opacity:.8">Get Best Wholesale Prices</small>
+                </div>
+            </a>
+            <div class="cta-gst">
+                <i class="fas fa-shield-alt"></i>
+                <div class="cta-gst-text">
+                    <h4>GST REGISTERED BUSINESS</h4>
+                    <p>Delivering Trust & Quality Across India</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRODUCTS -->
+<section class="jk-product-section">
+    <div class="container">
+        <div class="product-inner-section-div">
+            <div class="product-heading-box">
+                <h2>Explore Our Collection</h2>
+                <a href="{% url 'products' %}">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            {% if categories %}
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
+                {% for cat in categories %}
+                <a href="{% url 'products' %}?category={{ cat.id }}" style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border-light);padding:8px 16px;border-radius:20px;font-size:1.15rem;color:var(--text-sec);text-decoration:none;transition:all .3s;">
+                    {% if cat.image %}
+                    <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                    <i class="fas fa-folder" style="color:#D4AF37;"></i>
+                    {% endif %}
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if products %}
+            <div class="row g-3">
+                {% for product in products %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="jk-banner-product-wrapper">
+                        <a href="{% url 'product_detail' product.id %}">
+                            <img src="{{ product.image.url }}" alt="{{ product.sku }}">
+                        </a>
+                        <div class="jk-banner-product-content">
+                            {% if product.category %}
+                            <span style="display:inline-block;background:#e8f5e9;color:#1a3c34;font-size:1rem;font-weight:600;padding:3px 10px;border-radius:12px;margin-bottom:6px;">{{ product.category.name }}</span>
+                            {% endif %}
+                            <h2><a href="{% url 'product_detail' product.id %}">{{ product.sku }}</a></h2>
+                            <div class="jk-banner-product-list-info">
+                                <ul>
+                                    <li><span class="clr7">Dimensions:</span> <span class="clr2">{{ product.dimensions|default:"N/A" }}</span></li>
+                                </ul>
+                            </div>
+                            {% with lowest=product.pricings.all|dictsort:"price"|first %}
+                            {% if lowest %}
+                            <div class="jk-banner-product-price"><span>&#8377; {{ lowest.price }}</span> <small style="font-size:1.2rem;font-weight:400;color:var(--text-muted)">/Piece</small></div>
+                            {% endif %}
+                            {% endwith %}
+                            <a href="{% url 'product_detail' product.id %}" class="get-q-btn"><i class="fas fa-tag"></i> View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>Products coming soon</h3>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

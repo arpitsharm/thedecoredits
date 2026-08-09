@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Edit Product - Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 44px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.04);
+        border: 1px solid var(--border-light);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .form-card label { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .form-card input[type="text"],
+    .form-card input[type="number"],
+    .form-card input[type="file"],
+    .form-card textarea {
+        border-radius: 8px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        font-size: 1rem;
+        transition: all .3s;
+    }
+    .form-card input:focus, .form-card textarea:focus {
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 3px rgba(212,175,55,.1);
+    }
+    .pricing-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+        margin-bottom: 10px;
+    }
+    .pricing-row .form-group { flex: 1; margin-bottom: 0; }
+    .pricing-row .btn { margin-bottom: 2px; }
+    .images-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .image-upload-box {
+        border: 2px dashed var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        text-align: center;
+        transition: all .3s;
+    }
+    .image-upload-box:hover { border-color: #D4AF37; }
+    .image-upload-box input { width: 100%; }
+    .image-upload-box small { color: var(--text-muted); font-size: 1.1rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="form-card">
+        <h4 style="font-size:1.4rem;font-weight:700;margin-bottom:24px">
+            <i class="fas fa-edit me-2" style="color:var(--primary)"></i>Edit Product
+        </h4>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label>SKU *</label>
+                <input type="text" name="sku" class="form-control" value="{{ product.sku }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Category</label>
+                <select name="category" class="form-control">
+                    <option value="">-- No Category --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">Manage categories from <a href="{% url 'dashboard_categories' %}">Category Settings</a></small>
+            </div>
+            <div class="mb-3">
+                <label>Description *</label>
+                <textarea name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label>Current Image</label>
+                {% if product.image %}
+                <div class="mt-2 mb-2">
+                    <img src="{{ product.image.url }}" alt="{{ product.sku }}" style="max-width:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+                </div>
+                {% endif %}
+                <input type="file" name="image" class="form-control" accept="image/*">
+                <small class="text-muted">Leave blank to keep current image</small>
+            </div>
+            <div class="mb-3">
+                <label>Extra Images</label>
+                {% if extra_images %}
+                <div class="d-flex gap-2 mb-2 flex-wrap">
+                    {% for img in extra_images %}
+                    <img src="{{ img.image.url }}" alt="Extra {{ forloop.counter }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid var(--border-light)">
+                    {% endfor %}
+                </div>
+                <small class="text-muted d-block mb-2">Current extra images (upload new to replace)</small>
+                {% endif %}
+                <div class="images-grid">
+                    <div class="image-upload-box">
+                        <input type="file" name="extra_images" class="form-control" accept="image/*">
+                        <small>Image 2</small>
+                    </div>
+                    <div class="image-upload-box">
+                        <input type="file" name="extra_images" class="form-control" accept="image/*">
+                        <small>Image 3</small>
+                    </div>
+                    <div class="image-upload-box">
+                        <input type="file" name="extra_images" class="form-control" accept="image/*">
+                        <small>Image 4</small>
+                    </div>
+                    <div class="image-upload-box">
+                        <input type="file" name="extra_images" class="form-control" accept="image/*">
+                        <small>Image 5</small>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label>Dimensions</label>
+                <input type="text" name="dimensions" class="form-control" value="{{ product.dimensions }}" placeholder="e.g. 14(L) x 9(B) x 6.6(H)">
+            </div>
+            <div class="mb-3">
+                <label>Material</label>
+                <input type="text" name="material" class="form-control" value="{{ product.material }}" placeholder="e.g. Ceramic, Wood, Metal">
+            </div>
+            <div class="mb-3">
+                <label>Available Colors / Variants</label>
+                <input type="text" name="colors_variants" class="form-control" value="{{ product.colors_variants }}" placeholder="e.g. Red, Blue, Green">
+            </div>
+            <div class="mb-3">
+                <label>Weight</label>
+                <input type="text" name="weight" class="form-control" value="{{ product.weight }}" placeholder="e.g. 500g, 1.2kg">
+            </div>
+            <div class="mb-3">
+                <label>Packaging</label>
+                <input type="text" name="packaging" class="form-control" value="{{ product.packaging }}" placeholder="e.g. Gift box, Corrugated box">
+            </div>
+            <div class="mb-3">
+                <label>WhatsApp Number *</label>
+                <select name="phone_number" class="form-control" required>
+                    <option value="" disabled>Select a phone number</option>
+                    {% for phone in phones %}
+                    <option value="{{ phone.number }}" {% if phone.number == product.phone_number %}selected{% endif %}>
+                        {{ phone.label }} - {{ phone.number }} {% if phone.is_default %}(Default){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">Manage phone numbers from <a href="{% url 'dashboard_phones' %}">Phone Settings</a></small>
+            </div>
+            <div class="mb-4">
+                <label class="mb-2">Pricing (MOQ & Price)</label>
+                <div id="pricingContainer">
+                    {% for pricing in product.pricings.all %}
+                    <div class="pricing-row">
+                        <div class="form-group">
+                            <input type="number" name="moq" class="form-control" min="1" value="{{ pricing.moq }}" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="price" class="form-control" min="1" value="{{ pricing.price }}" required>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="addPricingRow()">
+                    <i class="fas fa-plus me-1"></i>Add Row
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="font-size:1rem;padding:10px 28px">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary" style="font-size:1rem">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function addPricingRow() {
+    const container = document.getElementById('pricingContainer');
+    const row = document.createElement('div');
+    row.className = 'pricing-row';
+    row.innerHTML = `
+        <div class="form-group">
+            <input type="number" name="moq" class="form-control" min="1" placeholder="MOQ (e.g. 10)" required>
+        </div>
+        <div class="form-group">
+            <input type="number" name="price" class="form-control" min="1" placeholder="Price per unit (Rs.)" required>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(row);
+}
+</script>
+{% endblock %}
