@@ -1,0 +1,28 @@
+[Unit]
+Description=The Decor Edits Gunicorn
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/thedecoredits
+ExecStart=/var/www/thedecoredits/venv/bin/gunicorn -c gunicorn_config.py thedecoredits.wsgi:application
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+
+# Environment
+EnvironmentFile=/var/www/thedecoredits/.env
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/thedecoredits/media
+ReadWritePaths=/var/log/gunicorn
+ReadWritePaths=/var/www/thedecoredits/db.sqlite3
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
